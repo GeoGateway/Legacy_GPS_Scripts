@@ -103,17 +103,18 @@ for entry in station_list:
     (stationID, lat, long, height) = entry
 
     url = url_prefix + stationID + url_suffix
-    try:
-      last_mod = urllib2.urlopen(url).info().getdate('last-modified')
-      print(last_mod)
-      last_mod_ts = datetime(last_mod[:7]) 
-      today = datetime.today()
-      if (today - last_mod_ts) > timedelta(days=180):
-        print stationID + " inactive for over 180 days, skipping."
-        continue
-    except urllib2.URLError:
-        print stationID + " not available for download."
-        continue
+    # skip this part first
+    # try:
+    #   last_mod = urllib2.urlopen(url).info().getdate('last-modified')
+    #   print(last_mod)
+    #   last_mod_ts = datetime(last_mod[:7]) 
+    #   today = datetime.today()
+    #   if (today - last_mod_ts) > timedelta(days=180):
+    #     print stationID + " inactive for over 180 days, skipping."
+    #     continue
+    # except urllib2.URLError:
+    #     print stationID + " not available for download."
+    #     continue
     wgetcmd = "wget -nv -P " + workdir + " " + url 
     os.system(wgetcmd)
 
