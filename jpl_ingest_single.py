@@ -147,18 +147,23 @@ for entry in station_list:
     last_line = ""
     for line in data[1:]:
         record = string.split(line)
-        if len(record) < 20: # When missing white spaces between columns
-                  print "Skipping "+ stationID + " due to bad data entries."
-                  os.remove(station_dbfile)
-                  break 
-        sts = record[1]
-        east = float(record[8])*1000.0
-        north = float(record[10])*1000.0
-        up = float(record[12])*1000.0
-        esig = float(record[14])*1000.0
-        nsig = float(record[15])*1000.0
-        usig = float(record[16])*1000.0
-        timestamp = date.fromtimestamp(mktime(strptime(sts, "%y%b%d")))
+        #   Column 1: Decimal_YR  
+        #   Columns 2-4: East(m) North(m) Vert(m) 
+        #   Columns 5-7: E_sig(m) N_sig(m) V_sig(m) 
+        #   Columns 8-10: E_N_cor, E_V_cor, N_V_cor
+        #   Column 11: Time in Seconds past J2000
+        #   Columns 12-17: Time in YEAR MM DD HR MN S
+
+        # convert meter to mm
+        east = float(record[1])*1000.0
+        north = float(record[2])*1000.0
+        up = float(record[3])*1000.0
+        esig = float(record[4])*1000.0
+        nsig = float(record[5])*1000.0
+        usig = float(record[6])*1000.0
+        #2001  4 20
+        sts = record[11] + "/" + record[12] + "/" + record[13]
+        timestamp = date.fromtimestamp(mktime(strptime(sts, "%Y/%m/%d")))
         sql = "INSERT INTO GPSTimeSeries (StationID, North, East, Up, Nsig, Esig, Usig, Timestamp) "
         sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (stationID, north, east, up, nsig, esig, usig, timestamp)
         try: 
