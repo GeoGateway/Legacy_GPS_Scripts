@@ -36,38 +36,23 @@ from datetime import timedelta
 from datetime import datetime
 
 from properties import properties
-from unrsites import unr_sites
+from jplsites import jpl_sites
 
 from time import strptime
 from time import mktime
 
-numargv = len(sys.argv)
-if numargv == 1:
-    sys.exit("usage: unr_ingest_single.py igs08|fid")
-elif numargv == 2:
-    dataset = sys.argv[1]
-else:
-    sys.exit("Invalid number of parameters!")
 
-if dataset == 'igs08':
-    url_prefix = "http://geodesy.unr.edu/gps_timeseries/tenv3/IGS08/"
-    url_suffix = ".IGS08.tenv3"
-elif dataset == 'fid':
-    url_prefix = "http://geodesy.unr.edu/gps_timeseries/rapids/tenv3/FID/"
-    url_suffix = ".FID.tenv3"
-else:
-    sys.exit("Unrecognized dataset: " + dataset)
+station_list = jpl_sites()
+#sample_url: ftp://sideshow.jpl.nasa.gov/pub/usrs/mbh/point/019B.series
+url_prefix = "ftp://sideshow.jpl.nasa.gov/pub/usrs/mbh/point/"
 
-station_list = unr_sites()
-
-#rdahmm_path = "/home/yuma/RDAHMM/Data/"
 data_path = properties('data_path')
 temp_path = properties('temp_path')
 model_path = properties('model_path')
 
-datadir = data_path + "UNR_" + dataset.upper() + "/"
-dbfile = datadir + "UNR_" + dataset.upper() + ".sqlite"
-workdir = temp_path + "UNR_" + dataset.upper() + "/"
+datadir = data_path + "JPL_" + dataset.upper() + "/"
+dbfile = datadir + "JPL_" + dataset.upper() + ".sqlite"
+workdir = temp_path + "JPL_" + dataset.upper() + "/"
 #print datadir, dbfile
 
 if not os.path.exists(datadir):
