@@ -101,27 +101,20 @@ os.system(cmd)
 
 for entry in station_list:
     (stationID, lat, long, height) = entry
-    # skip non-FID stations to reduce final size.
-    station_model = model_path + "/UNR_FID/daily_project_" + stationID + "/"
-    if not os.path.exists(station_model):
-	continue
-
-    #if (stationID <> 'J234'):
-    #	continue
 
     url = url_prefix + stationID + url_suffix
     try:
-        last_mod = urllib2.urlopen(url).info().getdate('last-modified')
-	last_mod_ts = datetime(*last_mod[:7]) 
-	today = datetime.today()
-	if (today - last_mod_ts) > timedelta(days=180):
-	    print stationID + " inactive for over 180 days, skipping."
-	    continue
-#        urllib2.urlopen(url)
+      last_mod = urllib2.urlopen(url).info().getdate('last-modified')
+      print(last_mod)
+      last_mod_ts = datetime(last_mod[:7]) 
+      today = datetime.today()
+      if (today - last_mod_ts) > timedelta(days=180):
+        print stationID + " inactive for over 180 days, skipping."
+        continue
     except urllib2.URLError:
         print stationID + " not available for download."
-	continue
-    wgetcmd = "wget -nv -P" + workdir + " " + url 
+        continue
+    wgetcmd = "wget -nv -P " + workdir + " " + url 
     os.system(wgetcmd)
 
     sql = "INSERT INTO ReferencePositions (StationID, Latitude, Longitude, Height) "
@@ -132,7 +125,7 @@ for entry in station_list:
     if os.path.isfile(station_dbfile):
         print "deleting old station database " + station_dbfile
         os.remove(station_dbfile)
-	#continue
+
     station_conn = db.connect(station_dbfile)
     station_cur = station_conn.cursor()
     station_sql ="""CREATE TABLE StationGPSTimeSeries (
@@ -149,55 +142,55 @@ for entry in station_list:
     station_conn.commit()
 
     with open(workdir + stationID + url_suffix, 'r') as f: 
-	data = f.readlines()
-	last_line = ""
-	for line in data[1:]:
-	    record = string.split(line)
-	    if len(record) < 20: # When missing white spaces between columns
-                print "Skipping "+ stationID + " due to bad data entries."
-                os.remove(station_dbfile)
-	        break 
-	    sts = record[1]
-	    east = float(record[8])*1000.0
-	    north = float(record[10])*1000.0
-            up = float(record[12])*1000.0
-	    esig = float(record[14])*1000.0
-            nsig = float(record[15])*1000.0
-            usig = float(record[16])*1000.0
-	    timestamp = date.fromtimestamp(mktime(strptime(sts, "%y%b%d")))
-            sql = "INSERT INTO GPSTimeSeries (StationID, North, East, Up, Nsig, Esig, Usig, Timestamp) "
-            sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (stationID, north, east, up, nsig, esig, usig, timestamp)
-	    try: 
-                cur.execute(sql)
-	    except db.IntegrityError as error: 
-	    	print "Source data error: ", sql
-		print "sqlite3.IntegrityError: ", error, "\n"
-		continue
+        data = f.readlines()
+    last_line = ""
+    for line in data[1:]:
+        record = string.split(line)
+        if len(record) < 20: # When missing white spaces between columns
+                  print "Skipping "+ stationID + " due to bad data entries."
+                  os.remove(station_dbfile)
+                  break 
+        sts = record[1]
+        east = float(record[8])*1000.0
+        north = float(record[10])*1000.0
+        up = float(record[12])*1000.0
+        esig = float(record[14])*1000.0
+        nsig = float(record[15])*1000.0
+        usig = float(record[16])*1000.0
+        timestamp = date.fromtimestamp(mktime(strptime(sts, "%y%b%d")))
+        sql = "INSERT INTO GPSTimeSeries (StationID, North, East, Up, Nsig, Esig, Usig, Timestamp) "
+        sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (stationID, north, east, up, nsig, esig, usig, timestamp)
+        try: 
+            cur.execute(sql)
+        except db.IntegrityError as error: 
+            print "Source data error: ", sql
+            print "sqlite3.IntegrityError: ", error, "\n"
+            continue
                 
-            if last_line == "":
-                last_line = line
-            else:
-	        last_record = string.split(last_line)
-	        lsts = last_record[1]
-	        least = float(last_record[8])*1000.0
-	        lnorth = float(last_record[10])*1000.0
-                lup = float(last_record[12])*1000.0
-	        lesig = float(last_record[14])*1000.0
-                lnsig = float(last_record[15])*1000.0
-                lusig = float(last_record[16])*1000.0
-	        last_timestamp = date.fromtimestamp(mktime(strptime(lsts, "%y%b%d")))
-                # if missing days from last to current, fill with last
-                for i in range(1, (timestamp - last_timestamp).days):
-                    ts = last_timestamp + timedelta(days=i)
-                    interploated = 1
-                    station_sql = "INSERT INTO StationGPSTimeSeries (North, East, Up, Nsig, Esig, Usig, Timestamp, Interploated) "
-                    station_sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (lnorth, least, lup, lnsig, lesig, lusig, ts, interploated)
-                    station_cur.execute(station_sql)
-		last_line = line
+        if last_line == "":
+            last_line = line
+        else:
+            last_record = string.split(last_line)
+            lsts = last_record[1]
+            least = float(last_record[8])*1000.0
+            lnorth = float(last_record[10])*1000.0
+            lup = float(last_record[12])*1000.0
+            lesig = float(last_record[14])*1000.0
+            lnsig = float(last_record[15])*1000.0
+            lusig = float(last_record[16])*1000.0
+            last_timestamp = date.fromtimestamp(mktime(strptime(lsts, "%y%b%d")))
+            # if missing days from last to current, fill with last
+            for i in range(1, (timestamp - last_timestamp).days):
+                ts = last_timestamp + timedelta(days=i)
+                interploated = 1
+                station_sql = "INSERT INTO StationGPSTimeSeries (North, East, Up, Nsig, Esig, Usig, Timestamp, Interploated) "
+                station_sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (lnorth, least, lup, lnsig, lesig, lusig, ts, interploated)
+                station_cur.execute(station_sql)
+            last_line = line
 
             station_sql = "INSERT INTO StationGPSTimeSeries (North, East, Up, Nsig, Esig, Usig, Timestamp) "
             station_sql += " VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (north, east, up, nsig, esig, usig, timestamp)
-    	    station_cur.execute(station_sql)
+            station_cur.execute(station_sql)
 
     station_conn.commit()
     conn.commit()
