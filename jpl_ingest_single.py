@@ -15,6 +15,18 @@
 # output:
 #   /path/to/rdahmm/unr_data.sqlite
 #   /path/to/rdahmm/stationID.sqlite
+#
+# reference: 
+#   JPL web: https://sideshow.jpl.nasa.gov/post/series.html
+#   documents: https://sideshow.jpl.nasa.gov/post/tables/GPS_Time_Series.pdf
+#
+# Time Series and Residual Format
+#   Column 1: Decimal_YR  
+#   Columns 2-4: East(m) North(m) Vert(m) 
+#   Columns 5-7: E_sig(m) N_sig(m) V_sig(m) 
+#   Columns 8-10: E_N_cor, E_V_cor, N_V_cor
+#   Column 11: Time in Seconds past J2000
+#   Columns 12-17: Time in YEAR MM DD HR MN S
 #===========================================================================
 import os, sys, string 
 import sqlite3 as db
