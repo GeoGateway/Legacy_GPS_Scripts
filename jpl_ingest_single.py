@@ -45,6 +45,9 @@ from time import mktime
 station_list = jpl_sites()
 #sample_url: ftp://sideshow.jpl.nasa.gov/pub/usrs/mbh/point/019B.series
 url_prefix = "ftp://sideshow.jpl.nasa.gov/pub/usrs/mbh/point/"
+url_suffix = ".series"
+# jpl currently has only one dataset
+dataset = "point"
 
 data_path = properties('data_path')
 temp_path = properties('temp_path')
